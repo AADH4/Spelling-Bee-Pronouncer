@@ -1,6 +1,7 @@
 import streamlit as st
 from gtts import gTTS
 import os
+
 def pronounce_and_check_spelling(word_list, language='en'):
     for word in word_list:
         # Generate audio for the word using gTTS
@@ -25,7 +26,9 @@ def pronounce_and_check_spelling(word_list, language='en'):
 
 # Main program
 st.title("Spelling Bee Pronunciation App")
+
 user_input = st.text_input("Enter a list of words separated by commas (e.g., apple, banana, cherry):")
+
 if user_input:
     word_list = [word.strip() for word in user_input.split(',')]
     pronounce_and_check_spelling(word_list)
