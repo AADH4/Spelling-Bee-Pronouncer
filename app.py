@@ -1,7 +1,6 @@
 import streamlit as st
 from gtts import gTTS
 import os
-
 # Function to pronounce and check spelling
 def pronounce_and_check_spelling(word_list, language='en'):
     for word in word_list:
