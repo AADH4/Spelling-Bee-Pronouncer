@@ -1,5 +1,2 @@
 streamlit
-TTS
-numpy
-torch
-torchaudio
+pyttsx3
