@@ -1,23 +1,31 @@
 import streamlit as st
-from TTS.api import TTS
+import pyttsx3
 import os
+import tempfile
 
 def pronounce_and_check_spelling(word_list, language='en'):
-    # Initialize the Coqui TTS model
-    tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC")
+    # Initialize pyttsx3 engine
+    engine = pyttsx3.init()
+    
+    # Set the language if needed (default pyttsx3 voices are system dependent)
+    voices = engine.getProperty('voices')
+    if language == 'en':
+        engine.setProperty('voice', voices[0].id)  # Set to the first voice (English)
     
     for word in word_list:
         # Skip empty words
         if not word.strip():
             st.warning("Skipping empty word.")
             continue
-        
-        # Generate audio for the word using Coqui TTS
-        filename = f"{word}.wav"
-        tts.tts_to_file(text=word, file_path=filename)
-        
-        # Display the audio player for each word
-        st.audio(filename, format='audio/wav')
+
+        # Generate and save audio using pyttsx3
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+            temp_filename = temp_audio_file.name
+            engine.save_to_file(word, temp_filename)
+            engine.runAndWait()
+
+        # Display the audio player for the word
+        st.audio(temp_filename, format='audio/mp3')
         
         # Ask the user to type the spelling
         user_input = st.text_input(f"Please spell the word you just heard:", key=word)
@@ -28,8 +36,9 @@ def pronounce_and_check_spelling(word_list, language='en'):
                 st.success("Correct!")
             else:
                 st.error(f"Incorrect! The correct spelling is: {word}")
-        
-        os.remove(filename)  # Remove the file after playing
+
+        # Remove the temporary audio file
+        os.remove(temp_filename)
 
 # Main program
 st.title("Spelling Bee Pronunciation App")
