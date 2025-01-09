@@ -1,64 +1,47 @@
 import streamlit as st
-from gtts import gTTS
-import speech_recognition as sr
-from io import BytesIO
-import os
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, AudioData
+from google.cloud import speech
 
-# Function to pronounce a list of words
-def pronounce_words(word_list, language='en'):
-    recognizer = sr.Recognizer()
+client = speech.SpeechClient()
 
-    for word in word_list:
-        # Generate the speech for the word using gTTS
-        myobj = gTTS(text=word, lang=language, slow=False)
-        audio_file = BytesIO()
-        myobj.save(audio_file)
-        audio_file.seek(0)
+# Google Cloud Speech-to-Text function
+def transcribe_audio(audio_data):
+    audio = speech.RecognitionAudio(content=audio_data)
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=16000,
+        language_code="en-US",
+    )
+    response = client.recognize(config=config, audio=audio)
+    if response.results:
+        return response.results[0].alternatives[0].transcript
+    return "Sorry, I couldn't understand that."
 
-        # Play the audio (synthesized word)
-        st.audio(audio_file, format='audio/mp3')
+# WebRTC Audio Processor
+class MyAudioProcessor(AudioProcessorBase):
+    def recv(self, frame: AudioData) -> AudioData:
+        audio_data = frame.to_bytes()
+        transcription = transcribe_audio(audio_data)
+        st.write(f"Transcription: {transcription}")
+        return frame
 
-        # Prompt the user to spell the word (type)
-        user_input_type = st.text_input(f"Please type the spelling of the word you just heard:")
+def main():
+    st.title("Spelling Bee App")
+    st.write("Please spell the word you just heard:")
 
-        # Prompt the user to speak the word into the microphone
-        st.write("Now, please say the spelling of the word into your microphone.")
-        
-        # Record user's speech and recognize it
-        with sr.Microphone() as source:
-            st.write("Listening...")
-            audio = recognizer.listen(source)
+    word_to_pronounce = "example"
+    st.write(f"Pronouncing the word: {word_to_pronounce}")
 
-            try:
-                user_input_speech = recognizer.recognize_google(audio)
-                st.write(f"You said: {user_input_speech}")
-            except sr.UnknownValueError:
-                user_input_speech = ""
-                st.write("Sorry, I couldn't understand your speech.")
-            except sr.RequestError:
-                user_input_speech = ""
-                st.write("Sorry, there was an issue with the speech recognition service.")
+    # Start WebRTC stream for recording
+    webrtc_streamer(key="example", audio_processor_factory=MyAudioProcessor)
 
-        # Check if both typed and spoken inputs are correct
-        if user_input_type.lower() == word.lower() and user_input_speech.lower() == word.lower():
-            st.success(f"CORRECT! You spelled '{word}' correctly!")
+    # Add the spelling check after receiving audio
+    if st.button("Check Spelling"):
+        user_input = st.text_input("Type the word you just heard:")
+        if user_input.lower() == word_to_pronounce.lower():
+            st.success("Correct!")
         else:
-            st.error(f"INCORRECT! The correct spelling of the word is: {word}")
+            st.error(f"Incorrect. The correct spelling is {word_to_pronounce}")
 
-# Main program
-st.title("Spelling Bee with Speech and Text Input")
-
-# Option to upload a text file with words
-uploaded_file = st.file_uploader("Upload a text file with your spelling words", type=["txt"])
-
-# If a file is uploaded, process it
-if uploaded_file:
-    word_list = [line.strip() for line in uploaded_file.decode('utf-8').splitlines()]
-    pronounce_words(word_list)
-
-else:
-    # Option 2: Ask the user to type the list of words directly
-    user_input = st.text_area("Enter your list of words separated by commas (e.g., apple, banana, cherry):")
-    if user_input:
-        word_list = [word.strip() for word in user_input.split(',')]
-        pronounce_words(word_list)
+if __name__ == "__main__":
+    main()
