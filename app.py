@@ -9,13 +9,23 @@ def pronounce_words(word_list, language='en'):
         filename = f"{word}.mp3"
         myobj.save(filename)
         
-        # Display the audio player for each word without displaying the word itself
+        # Display the audio player for each word
         st.audio(filename)  # Streamlit's method to display an audio player
+        
+        # Ask the user to spell the word
+        user_input = st.text_input(f"Please spell the word you just heard:")
+        
+        if user_input:
+            # Check if the spelling is correct (case insensitive)
+            if user_input.strip().lower() == word.lower():
+                st.success("Correct spelling!")
+            else:
+                st.error(f"Incorrect! The correct spelling is: {word}")
         
         os.remove(filename)  # Remove the file after playing
 
 # Main program
-st.title("Spelling List Pronunciation Program")
+st.title("Spelling Bee Pronunciation Program")
 
 # Option 1: Upload a text file with words
 uploaded_file = st.file_uploader("Upload a text file with words", type="txt")
