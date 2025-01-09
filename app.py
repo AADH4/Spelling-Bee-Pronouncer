@@ -1,6 +1,5 @@
 import streamlit as st
 from gtts import gTTS
-from IPython.display import Audio
 import os
 
 # Function to pronounce and check spelling
