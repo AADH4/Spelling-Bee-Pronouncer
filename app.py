@@ -4,7 +4,7 @@ import streamlit as st
 
 # Function to pronounce a list of words
 def pronounce_words(word_list, language='en'):
-    for word in word_list:
+    for idx, word in enumerate(word_list):  # Use index to create unique key
         myobj = gTTS(text=word, lang=language, slow=False)
         filename = f"{word}.mp3"
         myobj.save(filename)
@@ -12,8 +12,8 @@ def pronounce_words(word_list, language='en'):
         # Display the audio player for each word
         st.audio(filename)  # Streamlit's method to display an audio player
         
-        # Ask the user to spell the word
-        user_input = st.text_input(f"Please spell the word you just heard:")
+        # Ask the user to spell the word, giving a unique key using the index
+        user_input = st.text_input(f"Please spell the word you just heard:", key=f"input_{idx}")
         
         if user_input:
             # Check if the spelling is correct (case insensitive)
