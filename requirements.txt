@@ -1,4 +1,4 @@
-gTTS
-SpeechRecognition
-pydub
 streamlit
+google-cloud-speech
+streamlit-webrtc
+pydub
