@@ -4,6 +4,11 @@ import os
 
 def pronounce_and_check_spelling(word_list, language='en'):
     for word in word_list:
+        # Skip empty words
+        if not word.strip():
+            st.warning("Skipping empty word.")
+            continue
+        
         # Generate audio for the word using gTTS
         myobj = gTTS(text=word, lang=language, slow=False)
         filename = f"{word}.mp3"
