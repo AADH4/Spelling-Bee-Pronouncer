@@ -2,6 +2,7 @@ import streamlit as st
 from gtts import gTTS
 import os
 import time
+import hashlib
 
 def pronounce_and_check_spelling(word_list, language='en'):
     for word in word_list:
@@ -10,14 +11,16 @@ def pronounce_and_check_spelling(word_list, language='en'):
             st.warning("Skipping empty word.")
             continue
 
+        # Generate a unique short filename
+        short_filename = hashlib.md5(word.encode()).hexdigest()[:8] + ".mp3"
+
         # Generate audio for the word using gTTS
         try:
             tts = gTTS(text=word, lang=language, slow=False)
-            filename = f"{word}.mp3"
-            tts.save(filename)
+            tts.save(short_filename)
 
             # Display the audio player for each word
-            st.audio(filename, format='audio/mp3')
+            st.audio(short_filename, format='audio/mp3')
 
             # Ensure text input is visible for each word
             user_input = st.text_input(f"Please spell the word you just heard:", key=word, placeholder="Type here")
@@ -29,7 +32,7 @@ def pronounce_and_check_spelling(word_list, language='en'):
                 else:
                     st.error(f"Incorrect! The correct spelling is: {word}")
 
-            os.remove(filename)  # Remove the file after playing
+            os.remove(short_filename)  # Remove the file after playing
             time.sleep(0.7)  # Add a delay to avoid hitting rate limits
         except Exception as e:
             st.error(f"Error processing the word '{word}': {e}")
@@ -38,5 +41,5 @@ def pronounce_and_check_spelling(word_list, language='en'):
 st.title("Spelling Bee Pronunciation App")
 
 # Input words from the user
-input_words = st.text_area("Enter a list of words, one per line:").split('\n')
-pronounce_and_check_spelling(input_words)
+input_words = st.text_area("Enter a list of words separated by commas:").split(',')
+pronounce_and_check_spelling([word.strip() for word in input_words])
