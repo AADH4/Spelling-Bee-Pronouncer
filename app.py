@@ -19,8 +19,8 @@ def pronounce_and_check_spelling(word_list, language='en'):
             # Display the audio player for each word
             st.audio(filename, format='audio/mp3')
 
-            # Ask the user to type the spelling
-            user_input = st.text_input(f"Please spell the word you just heard:", key=word)
+            # Ensure text input is visible for each word
+            user_input = st.text_input(f"Please spell the word you just heard:", key=word, placeholder="Type here")
 
             # Check if the user input is correct
             if user_input:
@@ -36,3 +36,5 @@ def pronounce_and_check_spelling(word_list, language='en'):
 
 # Main program
 st.title("Spelling Bee Pronunciation App")
+
+
